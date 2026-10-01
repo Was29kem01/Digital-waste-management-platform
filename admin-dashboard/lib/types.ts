@@ -33,7 +33,8 @@ export interface User {
 
 export interface Report {
   id: number;
-  photoUrl?: string | null;
+  photoUrl: string;
+  description?: string;
   status: ReportStatus;
   latitude: number;
   longitude: number;

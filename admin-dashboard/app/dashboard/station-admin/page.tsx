@@ -3,10 +3,12 @@
 import React, { useState } from 'react';
 import DashboardHeader from '../../components/DashboardHeader';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { Activity, Truck, AlertTriangle, TrendingUp, TrendingDown, Clock, CheckCircle2, Calendar } from 'lucide-react';
 
 export default function StationAdminDashboard() {
   const { user } = useAuth();
+  const { isDarkMode } = useTheme();
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   
   if (!user) return null;
@@ -20,12 +22,12 @@ export default function StationAdminDashboard() {
       {/* Top Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {[
-          { label: 'Reports Collected (Today)', value: '142', icon: Truck, trend: '+12%', color: 'text-[#4E8B5C]', bg: 'bg-[#4E8B5C]/10' },
+          { label: 'Reports Collected (Today)', value: '142', icon: Truck, trend: '+12%', color: 'text-theme-muted', bg: 'bg-theme-secondary' },
           { label: 'Out of Coverage Areas', value: '18', icon: AlertTriangle, trend: '-5%', color: 'text-[#B7503A]', bg: 'bg-[#B7503A]/10' },
-          { label: 'Active Field Agents', value: '45', icon: Activity, trend: '+2 online', color: 'text-[#2F4B3C]', bg: 'bg-[#2F4B3C]/10' },
+          { label: 'Active Field Agents', value: '45', icon: Activity, trend: '+2 online', color: 'text-theme-muted', bg: 'bg-theme-secondary' },
           { label: 'Avg. Resolution Time', value: '4.2h', icon: Clock, trend: '-1.1h faster', color: 'text-[#D7A24A]', bg: 'bg-[#D7A24A]/10' },
         ].map((stat, i) => (
-          <div key={i} className="bg-white rounded-xl p-5 border border-[#E4DDCE] shadow-xs hover:shadow-md transition-all animate-fade-slide-up">
+          <div key={i} className="card-theme rounded-xl p-5 border border-theme shadow-xs hover:shadow-md transition-all animate-fade-slide-up">
             <div className="flex justify-between items-start mb-3">
               <div className={`p-2.5 rounded-lg ${stat.bg} ${stat.color}`}>
                 <stat.icon size={20} />
@@ -35,8 +37,8 @@ export default function StationAdminDashboard() {
                 {stat.trend}
               </div>
             </div>
-            <h3 className="text-2xl font-fraunces font-bold text-[#21261F]">{stat.value}</h3>
-            <p className="text-xs font-mono text-[#7A8272] mt-1 font-semibold uppercase tracking-wider">{stat.label}</p>
+            <h3 className="text-2xl font-fraunces font-bold text-theme">{stat.value}</h3>
+            <p className="text-xs font-mono text-theme-muted mt-1 font-semibold uppercase tracking-wider">{stat.label}</p>
           </div>
         ))}
       </div>
@@ -44,15 +46,15 @@ export default function StationAdminDashboard() {
       {/* Main Charts & Activity Area */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Activity Chart Container */}
-        <div className="lg:col-span-2 bg-white rounded-xl p-6 border border-[#E4DDCE] shadow-xs animate-fade-slide-up relative overflow-hidden">
+        <div className="lg:col-span-2 card-theme rounded-xl p-6 border border-theme shadow-xs animate-fade-slide-up relative overflow-hidden">
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h3 className="font-fraunces text-lg font-bold text-[#2F4B3C]">Weekly Collection Activity</h3>
-              <p className="text-xs font-mono text-[#7A8272] mt-0.5">Verified vs collected reports volume</p>
+              <h3 className="font-fraunces text-lg font-bold text-theme">Weekly Collection Activity</h3>
+              <p className="text-xs font-mono text-theme-muted mt-0.5">Verified vs collected reports volume</p>
             </div>
             
             <div className="relative">
-              <select className="appearance-none bg-[#F4EFE6]/50 hover:bg-[#F4EFE6] border border-[#E4DDCE] rounded-lg px-3 py-1.5 text-xs font-mono font-semibold text-[#21261F] focus:outline-none cursor-pointer">
+              <select className="appearance-none bg-theme-secondary hover:bg-theme-secondary border border-theme rounded-lg px-3 py-1.5 text-xs font-mono font-semibold text-theme focus:outline-none cursor-pointer">
                 <option>This Week</option>
                 <option>This Month</option>
               </select>
@@ -60,7 +62,7 @@ export default function StationAdminDashboard() {
           </div>
           
           {/* Chart Graphic */}
-          <div className="h-60 w-full flex items-end justify-between gap-4 border-b border-[#E4DDCE] pb-3 relative mt-4 px-2">
+          <div className="h-60 w-full flex items-end justify-between gap-4 border-b border-theme pb-3 relative mt-4 px-2">
             {[
               { collected: 40, verified: 60, day: 'Mon' },
               { collected: 70, verified: 80, day: 'Tue' },
@@ -75,28 +77,28 @@ export default function StationAdminDashboard() {
                 className="w-full flex flex-col justify-end items-center group relative h-full cursor-pointer"
                 onClick={() => setSelectedDay(selectedDay === data.day ? null : data.day)}
               >
-                <div className={`w-full max-w-[36px] ${selectedDay === data.day ? 'bg-[#C4D0C0] ring-2 ring-[#2F4B3C] ring-offset-1' : 'bg-[#EAF0E7]'} rounded-t-md relative overflow-hidden transition-all group-hover:bg-[#DEE7DC]`} style={{ height: `${data.verified}%` }}>
-                  <div className={`absolute bottom-0 left-0 w-full bg-[#2F4B3C] rounded-t-md transition-all ${selectedDay === data.day ? 'opacity-100' : 'opacity-90 group-hover:opacity-100'}`} style={{ height: `${(data.collected / data.verified) * 100}%` }}></div>
+                <div className={`w-full max-w-[36px] ${selectedDay === data.day ? 'bg-[#C4D0C0] ring-2 ring-theme-muted ring-offset-1' : 'bg-theme-secondary'} rounded-t-md relative overflow-hidden transition-all group-hover:bg-[#DEE7DC] dark:group-hover:bg-[#2C2C2C]`} style={{ height: `${data.verified}%` }}>
+                  <div className={`absolute bottom-0 left-0 w-full bg-[#4E8B5C] rounded-t-md transition-all ${selectedDay === data.day ? 'opacity-100' : 'opacity-90 group-hover:opacity-100'}`} style={{ height: `${(data.collected / data.verified) * 100}%` }}></div>
                 </div>
-                <span className={`text-[11px] font-mono font-semibold mt-2 uppercase ${selectedDay === data.day ? 'text-[#2F4B3C]' : 'text-[#7A8272]'}`}>{data.day}</span>
+                <span className={`text-[11px] font-mono font-semibold mt-2 uppercase ${selectedDay === data.day ? 'text-theme' : 'text-theme-muted'}`}>{data.day}</span>
               </div>
             ))}
           </div>
         </div>
 
         {/* Live Field Agent Feed */}
-        <div className="bg-white rounded-xl p-6 border border-[#E4DDCE] shadow-xs animate-fade-slide-up">
+        <div className="card-theme rounded-xl p-6 border border-theme shadow-xs animate-fade-slide-up">
           <div className="flex justify-between items-start mb-6">
             <div>
-              <h3 className="font-fraunces text-lg font-bold text-[#2F4B3C] mb-0.5">Live Agent Activity</h3>
-              <p className="text-xs font-mono text-[#7A8272]">
+              <h3 className="font-fraunces text-lg font-bold text-theme mb-0.5">Live Agent Activity</h3>
+              <p className="text-xs font-mono text-theme-muted">
                 {selectedDay ? `Activity log for ${selectedDay}` : 'Real-time resolution log'}
               </p>
             </div>
             {selectedDay && (
               <button 
                 onClick={() => setSelectedDay(null)}
-                className="text-[10px] uppercase font-mono font-bold bg-[#E4DDCE]/50 px-2 py-1 rounded text-[#7A8272] hover:bg-[#E4DDCE] hover:text-[#21261F] transition-colors"
+                className="text-[10px] uppercase font-mono font-bold bg-theme-secondary px-2 py-1 rounded text-theme-muted hover:text-theme transition-colors border border-theme"
               >
                 Clear Filter
               </button>
@@ -120,9 +122,9 @@ export default function StationAdminDashboard() {
                   {feed.warning ? <AlertTriangle size={14} /> : <CheckCircle2 size={14} />}
                 </div>
                 <div>
-                  <p className="font-bold text-[#21261F]">{feed.agent}</p>
-                  <p className={`text-xs ${feed.warning ? 'text-[#B7503A] font-semibold' : 'text-[#7A8272]'}`}>{feed.action}</p>
-                  <p className="flex items-center gap-1 font-mono text-[10px] text-[#7A8272]/70 mt-0.5">
+                  <p className="font-bold text-theme">{feed.agent}</p>
+                  <p className={`text-xs ${feed.warning ? 'text-[#B7503A] font-semibold' : 'text-theme-muted'}`}>{feed.action}</p>
+                  <p className="flex items-center gap-1 font-mono text-[10px] text-theme-muted mt-0.5">
                     <Calendar size={10} /> {feed.day} • {feed.time}
                   </p>
                 </div>
@@ -139,7 +141,7 @@ export default function StationAdminDashboard() {
               { agent: 'Jean Paul', action: 'Collected Report #0062', time: '1:20 PM', day: 'Sat' },
             ].filter(feed => !selectedDay || feed.day === selectedDay).length === 0 && (
               <div className="text-center py-6">
-                <p className="text-[#7A8272] font-mono text-xs">No activity logged for {selectedDay}</p>
+                <p className="text-theme-muted font-mono text-xs">No activity logged for {selectedDay}</p>
               </div>
             )}
           </div>

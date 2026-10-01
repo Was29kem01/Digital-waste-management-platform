@@ -3,16 +3,25 @@
 import React, { useState, useRef, useEffect } from 'react';
 import DashboardHeader from '../../../../components/DashboardHeader';
 import { useAuth } from '../../../../context/AuthContext';
+import { useTheme } from '../../../../context/ThemeContext';
 import { MapPin, Building2, User, ChevronLeft, Map } from 'lucide-react';
-import { GoogleMap, Rectangle, LoadScript } from '@react-google-maps/api';
+import mapboxgl from 'mapbox-gl';
+
 import Link from 'next/link';
+import AdvancedMapEditor from '../../../../components/AdvancedMapEditor';
+import * as turf from '@turf/turf';
 
 export default function NewBranchPage() {
   const { user } = useAuth();
+  const { isDarkMode } = useTheme();
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<mapboxgl.Map | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     address: '',
-    managerId: ''
+    managerId: '',
+    trucks: 1,
+    agents: 1
   });
   
   const [isMapExpanded, setIsMapExpanded] = useState(false);
@@ -25,53 +34,58 @@ export default function NewBranchPage() {
     west: 11.4821
   });
   
-  const [coverageStats, setCoverageStats] = useState({
+  const [coverageStats, setCoverageStats] = useState<{areaSqKm: string, estPopulation: string, requiredTrucks: string, geometry: any}>({
     areaSqKm: '0',
     estPopulation: '0',
-    requiredTrucks: '0 Trucks'
+    requiredTrucks: '0 Trucks',
+    geometry: null
   });
 
-  const onBoundsChanged = (rect: google.maps.Rectangle | null) => {
-    if (rect) {
-      const newBounds = rect.getBounds();
-      if (newBounds) {
-        const ne = newBounds.getNorthEast();
-        const sw = newBounds.getSouthWest();
-        
-        setBounds({
-          north: ne.lat(),
-          south: sw.lat(),
-          east: ne.lng(),
-          west: sw.lng()
-        });
-
-        const widthKm = Math.abs(ne.lng() - sw.lng()) * 111.32; 
-        const heightKm = Math.abs(ne.lat() - sw.lat()) * 110.57;
-        
-        const area = (widthKm * heightKm).toFixed(1);
-        const pop = Math.round((widthKm * heightKm) * 9000).toLocaleString();
-        const trucks = Math.ceil(widthKm * heightKm * 1.2);
-
+  // We now use AdvancedMapEditor for map logic
+  const handleBoundsChange = (data: any) => {
+    // If the data has features, we can update our local bounds approximation or just keep the GeoJSON.
+    if (data && data.features && data.features.length > 0) {
+      const feature = data.features[0];
+      if (feature.geometry.type === 'Polygon') {
+        const areaSqMeters = turf.area(feature);
+        const areaSqKm = (areaSqMeters / 1000000).toFixed(1);
+        const pop = Math.round((areaSqMeters / 1000000) * 9000).toLocaleString();
+        const trucks = Math.ceil((areaSqMeters / 1000000) * 1.2);
         setCoverageStats({
-          areaSqKm: `${area}`,
+          areaSqKm: `${areaSqKm}`,
           estPopulation: `${pop} residents`,
-          requiredTrucks: `${trucks} Trucks required`
+          requiredTrucks: `${trucks} Trucks required`,
+          geometry: feature
         });
       }
     }
   };
+  if (!user) return null;
+  const availableAdmins = [
+    { id: '1', name: 'John Doe (Station Admin - Douala)' },
+    { id: '2', name: 'Jane Smith (Station Admin - Yaoundé)' }
+  ];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    alert(`Branch ${formData.name} initialized with ${coverageStats.areaSqKm} km² coverage zone!`);
+    const existing = JSON.parse(localStorage.getItem('saved_branches') || '[]');
+    
+    // Create new branch matching the BranchItem interface from branches/page.tsx
+    const newBranch = {
+      id: Date.now(),
+      name: formData.name,
+      address: formData.address,
+      manager: formData.managerId ? availableAdmins.find(m => m.id === formData.managerId)?.name.split(' (')[0] : 'Unassigned',
+      agentsCount: formData.agents, 
+      status: 'ACTIVE',
+      // Store the drawn bounds geometry so the map can zoom back exactly to it
+      boundsGeometry: coverageStats.geometry 
+    };
+    
+    localStorage.setItem('saved_branches', JSON.stringify([...existing, newBranch]));
+    alert(`Branch ${formData.name} initialized with ${formData.trucks} assigned trucks and ${coverageStats.areaSqKm} km² coverage!`);
+    window.location.href = '/dashboard/admin/branches';
   };
-
-  if (!user) return null;
-
-  const availableManagers = [
-    { id: '1', name: 'John Doe (Station Manager - Douala)' },
-    { id: '2', name: 'Jane Smith (Station Manager - Yaoundé)' }
-  ];
 
   const mapCenter = {
     lat: (bounds.north + bounds.south) / 2,
@@ -85,20 +99,20 @@ export default function NewBranchPage() {
       </div>
 
       <div className="mb-6 animate-fade-slide-up" style={{ animationDelay: '100ms', opacity: 0 }}>
-        <Link href="/dashboard/admin/branches" className="inline-flex items-center gap-2 text-moss font-space font-bold hover:underline">
+        <Link href="/dashboard/admin/branches" className="inline-flex items-center gap-2 text-theme-muted font-space font-bold hover:underline">
           <ChevronLeft size={18} /> Back to Branches
         </Link>
       </div>
 
-      <div className="bg-white rounded-3xl shadow-sm border border-line overflow-hidden animate-fade-slide-up" style={{ animationDelay: '200ms', opacity: 0 }}>
-        <div className="p-8 border-b border-line bg-gray-50/50">
+      <div className="card-theme rounded-3xl shadow-sm border border-theme overflow-hidden animate-fade-slide-up" style={{ animationDelay: '200ms', opacity: 0 }}>
+        <div className="p-8 border-b border-theme bg-theme-secondary">
           <div className="flex items-center gap-4 mb-2">
-            <div className="p-3 bg-moss/10 text-moss rounded-xl">
+            <div className="p-3 bg-[#2F4B3C]/10 text-theme-muted rounded-xl">
               <Building2 size={24} />
             </div>
             <div>
-              <h2 className="text-2xl font-fraunces text-ink font-bold">Branch & Spatial Zone Setup</h2>
-              <p className="text-sm text-muted font-space mt-1">Configure branch operational details and define Google Maps coverage boundaries.</p>
+              <h2 className="text-2xl font-fraunces text-theme font-bold">Branch & Spatial Zone Setup</h2>
+              <p className="text-sm text-theme-muted font-space mt-1">Configure branch operational details and define map coverage boundaries.</p>
             </div>
           </div>
         </div>
@@ -106,130 +120,105 @@ export default function NewBranchPage() {
         <form onSubmit={handleSubmit} className="p-8 space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-xs font-bold text-muted uppercase tracking-wider mb-2 font-space">Branch Name</label>
+              <label className="block text-xs font-bold text-theme-muted uppercase tracking-wider mb-2 font-space">Branch Name</label>
               <div className="relative">
-                <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" size={18} />
+                <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 text-theme-muted" size={18} />
                 <input 
                   type="text" 
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({...formData, name: e.target.value})}
                   placeholder="e.g. HYSACAM Douala Sud" 
-                  className="w-full pl-12 pr-4 py-3 rounded-xl border border-line font-space text-sm focus:outline-none focus:ring-2 focus:ring-moss/20 focus:border-moss transition-all"
+                  className="w-full pl-12 pr-4 py-3 rounded-xl border border-theme card-theme font-space text-sm focus:outline-none focus:ring-2 focus:ring-[#2F4B3C]/20 transition-all text-theme"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-muted uppercase tracking-wider mb-2 font-space">Physical Station Address</label>
+              <label className="block text-xs font-bold text-theme-muted uppercase tracking-wider mb-2 font-space">Physical Station Address</label>
               <div className="relative">
-                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" size={18} />
+                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-theme-muted" size={18} />
                 <input 
                   type="text" 
                   required
                   value={formData.address}
                   onChange={(e) => setFormData({...formData, address: e.target.value})}
                   placeholder="e.g. Avenue De Gaulle, Bonanjo" 
-                  className="w-full pl-12 pr-4 py-3 rounded-xl border border-line font-space text-sm focus:outline-none focus:ring-2 focus:ring-moss/20 focus:border-moss transition-all"
+                  className="w-full pl-12 pr-4 py-3 rounded-xl border border-theme card-theme font-space text-sm focus:outline-none focus:ring-2 focus:ring-[#2F4B3C]/20 transition-all text-theme"
                 />
               </div>
             </div>
           </div>
 
-          {/* GOOGLE MAPS INTERACTIVE ZONE DRAGGER */}
-          <div className="space-y-4 pt-4 border-t border-line">
+          {/* SPATIAL COVERAGE PREVIEW */}
+          <div className="space-y-4 pt-4 border-t border-theme">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-fraunces font-bold text-ink flex items-center gap-2"><Map size={20} className="text-[#C4693C]"/> Define Spatial Coverage</h3>
-                <p className="text-xs text-muted font-space">Drag the corners of the rectangle to adjust the coverage boundaries. You can use Satellite view and enlarge the map.</p>
-              </div>
-              <button 
-                type="button"
-                onClick={() => setIsMapExpanded(true)}
-                className="px-4 py-2 rounded-lg text-xs font-bold font-mono bg-moss/10 text-moss hover:bg-moss/20 transition-colors"
-              >
-                Enlarge Map ⛶
-              </button>
-            </div>
-
-            <div className={isMapExpanded ? "fixed inset-0 z-[100] bg-white flex flex-col" : "relative h-96 rounded-2xl border border-line overflow-hidden bg-gray-100"}>
-              {isMapExpanded && (
-                <div className="p-4 border-b border-line flex justify-between items-center bg-white z-50">
-                   <div>
-                     <h3 className="font-fraunces font-bold text-lg">Expanded Map View</h3>
-                     <p className="text-xs text-muted">Adjust branch coverage bounds.</p>
-                   </div>
-                   <button 
-                     type="button"
-                     onClick={() => setIsMapExpanded(false)} 
-                     className="px-4 py-2 bg-gray-100 text-gray-700 font-bold rounded-lg hover:bg-gray-200"
-                   >
-                     Close & Save
-                   </button>
-                </div>
-              )}
-              <div className="relative flex-1">
-                <LoadScript googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}>
-                  <GoogleMap
-                    mapContainerStyle={{ width: '100%', height: '100%' }}
-                    center={mapCenter}
-                    zoom={13}
-                  >
-                    <Rectangle
-                      bounds={bounds}
-                      editable={true}
-                      draggable={true}
-                      onBoundsChanged={function(this: google.maps.Rectangle) { onBoundsChanged(this) }}
-                      options={{
-                        fillColor: "rgba(47, 75, 60, 0.3)",
-                        strokeColor: "#2F4B3C",
-                        strokeOpacity: 0.8,
-                        strokeWeight: 2,
-                      }}
-                    />
-                  </GoogleMap>
-                </LoadScript>
+                <h3 className="text-lg font-fraunces font-bold text-theme flex items-center gap-2"><Map size={20} className="text-[#C4693C]"/> Define Spatial Coverage</h3>
+                <p className="text-xs text-theme-muted font-space">Mapbox coverage preview mapped to base coordinates.</p>
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4 pt-2">
-              <div className="p-3 bg-white rounded-xl border border-line">
-                <div className="text-[10px] uppercase font-bold font-space text-muted">Calculated Area</div>
-                <div className="text-sm font-bold font-mono text-moss mt-0.5">{coverageStats.areaSqKm} km²</div>
+            <div className="w-full">
+              <AdvancedMapEditor onBoundsChange={handleBoundsChange} />
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2">
+              <div className="p-3 card-theme rounded-xl border border-theme">
+                <div className="text-[10px] uppercase font-bold font-space text-theme-muted">Calculated Area</div>
+                <div className="text-sm font-bold font-mono text-theme mt-0.5">{coverageStats.areaSqKm} km²</div>
               </div>
-              <div className="p-3 bg-white rounded-xl border border-line">
-                <div className="text-[10px] uppercase font-bold font-space text-muted">Est. Population inside zone</div>
-                <div className="text-sm font-bold font-mono text-moss mt-0.5">{coverageStats.estPopulation}</div>
+              <div className="p-3 card-theme rounded-xl border border-theme">
+                <div className="text-[10px] uppercase font-bold font-space text-theme-muted">Est. Population</div>
+                <div className="text-sm font-bold font-mono text-theme mt-0.5">{coverageStats.estPopulation}</div>
               </div>
-              <div className="p-3 bg-white rounded-xl border border-line">
-                <div className="text-[10px] uppercase font-bold font-space text-muted">Required Logistics</div>
-                <div className="text-sm font-bold font-mono text-clay mt-0.5">{coverageStats.requiredTrucks}</div>
+              <div className="p-3 card-theme rounded-xl border border-theme flex flex-col justify-between">
+                <label className="text-[10px] uppercase font-bold font-space text-theme-muted">Assigned Trucks</label>
+                <input 
+                  type="number" 
+                  min="1"
+                  required
+                  value={formData.trucks}
+                  onChange={(e) => setFormData({...formData, trucks: parseInt(e.target.value) || 0})}
+                  className="w-full mt-1 px-2 py-1 bg-theme-secondary border border-theme rounded text-sm font-bold font-mono text-[#C4693C] focus:outline-none"
+                />
+              </div>
+              <div className="p-3 card-theme rounded-xl border border-theme flex flex-col justify-between">
+                <label className="text-[10px] uppercase font-bold font-space text-theme-muted">Assigned Agents</label>
+                <input 
+                  type="number" 
+                  min="1"
+                  required
+                  value={formData.agents}
+                  onChange={(e) => setFormData({...formData, agents: parseInt(e.target.value) || 0})}
+                  className="w-full mt-1 px-2 py-1 bg-theme-secondary border border-theme rounded text-sm font-bold font-mono text-theme focus:outline-none"
+                />
               </div>
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-muted uppercase tracking-wider mb-2 font-space">Assign Station Manager (Optional)</label>
+            <label className="block text-xs font-bold text-theme-muted uppercase tracking-wider mb-2 font-space">Assign Station Admin (Optional)</label>
             <div className="relative">
-              <User className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" size={18} />
+              <User className="absolute left-4 top-1/2 -translate-y-1/2 text-theme-muted" size={18} />
               <select 
                 value={formData.managerId}
                 onChange={(e) => setFormData({...formData, managerId: e.target.value})}
-                className="w-full pl-12 pr-4 py-3 rounded-xl border border-line font-space text-sm focus:outline-none focus:ring-2 focus:ring-moss/20 focus:border-moss transition-all appearance-none bg-white cursor-pointer"
+                className="w-full pl-12 pr-4 py-3 rounded-xl border border-theme font-space text-sm focus:outline-none focus:ring-2 focus:ring-[#2F4B3C]/20 transition-all appearance-none card-theme text-theme cursor-pointer"
               >
-                <option value="">Leave Unassigned</option>
-                {availableManagers.map(m => (
-                  <option key={m.id} value={m.id}>{m.name}</option>
+                <option className="bg-[#1A1A1A] text-white" value="">Leave Unassigned</option>
+                {availableAdmins.map(m => (
+                  <option className="bg-[#1A1A1A] text-white" key={m.id} value={m.id}>{m.name}</option>
                 ))}
               </select>
             </div>
           </div>
 
-          <div className="pt-6 border-t border-line flex justify-end gap-4">
-            <Link href="/dashboard/admin/branches" className="px-6 py-3 rounded-xl font-space font-bold text-muted hover:bg-sand transition-colors">
+          <div className="pt-6 border-t border-theme flex justify-end gap-4">
+            <Link href="/dashboard/admin/branches" className="px-6 py-3 rounded-xl font-space font-bold text-theme-muted hover:bg-theme-secondary/50 transition-colors">
               Cancel
             </Link>
-            <button type="submit" className="px-8 py-3 rounded-xl font-space font-bold text-white bg-moss hover:bg-moss-dark shadow-md transition-all hover:-translate-y-0.5">
+            <button type="submit" className="px-8 py-3 rounded-xl font-space font-bold text-white bg-[#2F4B3C] hover:bg-[#1D3128] shadow-md transition-all hover:-translate-y-0.5">
               Initialize Branch
             </button>
           </div>

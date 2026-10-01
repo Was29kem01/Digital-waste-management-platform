@@ -33,22 +33,22 @@ export default function AdminAgentsDashboard() {
         <DashboardHeader title="Staff & Agent Roster" user={{ name: user.name, role: user.role, branchName: user.branchName }} />
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-line overflow-hidden animate-fade-slide-up" style={{ animationDelay: '200ms', opacity: 0 }}>
+      <div className="card-theme rounded-2xl shadow-sm border border-theme overflow-hidden animate-fade-slide-up" style={{ animationDelay: '200ms', opacity: 0 }}>
         
-        <div className="p-6 border-b border-line flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gray-50/50">
+        <div className="p-6 border-b border-theme flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-theme-secondary/50">
           <div>
-            <h2 className="text-xl font-fraunces text-moss font-bold">Manage Personnel</h2>
-            <p className="text-sm text-muted font-space mt-1">Review, promote, or restrict access for agents in your regions.</p>
+            <h2 className="text-xl font-fraunces text-theme font-bold">Manage Personnel</h2>
+            <p className="text-sm text-theme-muted font-space mt-1">Review, promote, or restrict access for agents in your regions.</p>
           </div>
           
           <div className="relative w-full sm:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" size={18} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-theme-muted" size={18} />
             <input 
               type="text" 
               placeholder="Search Personnel..." 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 rounded-xl border border-line font-space text-sm focus:outline-none focus:ring-2 focus:ring-moss/20 focus:border-moss transition-all"
+              className="w-full pl-10 pr-4 py-2 rounded-xl border border-theme font-space text-sm focus:outline-none focus:ring-2 focus:ring-moss/20 focus:border-moss transition-all card-theme text-theme"
             />
           </div>
         </div>
@@ -56,26 +56,44 @@ export default function AdminAgentsDashboard() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[800px]">
             <thead>
-              <tr className="bg-sand/30 border-b border-line">
-                <th className="py-4 px-6 text-xs uppercase tracking-wider font-bold text-muted font-space">Name & Email</th>
-                <th className="py-4 px-6 text-xs uppercase tracking-wider font-bold text-muted font-space">Current Role</th>
-                <th className="py-4 px-6 text-xs uppercase tracking-wider font-bold text-muted font-space">Assigned Branch</th>
-                <th className="py-4 px-6 text-xs uppercase tracking-wider font-bold text-muted font-space text-right">Actions</th>
+              <tr className="bg-theme-secondary/30 border-b border-theme">
+                <th className="py-4 px-6 text-xs uppercase tracking-wider font-bold text-theme-muted font-space">Name & Email</th>
+                <th className="py-4 px-6 text-xs uppercase tracking-wider font-bold text-theme-muted font-space">Current Role</th>
+                <th className="py-4 px-6 text-xs uppercase tracking-wider font-bold text-theme-muted font-space">Assigned Branch</th>
+                <th className="py-4 px-6 text-xs uppercase tracking-wider font-bold text-theme-muted font-space text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-line">
               {agents.filter(a => a.name.toLowerCase().includes(search.toLowerCase())).map((agent, i) => (
-                <tr key={agent.id} className="hover:bg-sand/20 transition-colors animate-fade-slide-up group" style={{ animationDelay: `${300 + (i * 50)}ms`, opacity: 0 }}>
+                <tr key={agent.id} className="hover:bg-theme-secondary/20 transition-colors animate-fade-slide-up group" style={{ animationDelay: `${300 + (i * 50)}ms`, opacity: 0 }}>
                   <td className="py-4 px-6">
-                    <p className="font-space font-bold text-ink">{agent.name}</p>
-                    <p className="font-space text-sm text-muted">{agent.email}</p>
+                    <p className="font-space font-bold text-theme">{agent.name}</p>
+                    <p className="font-space text-sm text-theme-muted">{agent.email}</p>
                   </td>
                   <td className="py-4 px-6">
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-moss/10 text-moss border border-moss/20">
-                      {agent.role.replace('_', ' ')}
-                    </span>
+                    {(() => {
+                      let style = 'bg-theme-secondary text-theme border-theme';
+                      let dot = 'bg-theme';
+                      
+                      if (agent.role === 'SUPER_ADMIN') {
+                        style = 'bg-red/10 text-red border-red/20'; dot = 'bg-red';
+                      } else if (agent.role === 'STATION_ADMIN') {
+                        style = 'bg-amber/10 text-[#D7A24A] border-[#D7A24A]/20'; dot = 'bg-[#D7A24A]';
+                      } else if (agent.role === 'STATION_MANAGER') {
+                        style = 'bg-[#4E8B5C]/10 text-[#4E8B5C] border-[#4E8B5C]/20'; dot = 'bg-[#4E8B5C]';
+                      } else if (agent.role === 'FIELD_AGENT') {
+                        style = 'bg-moss/10 text-moss border-moss/20'; dot = 'bg-moss';
+                      }
+                      
+                      return (
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] uppercase tracking-wider font-bold border shadow-sm ${style}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${dot} animate-pulse`} style={{ animationDuration: '3s' }} />
+                          {agent.role.replace('_', ' ')}
+                        </span>
+                      );
+                    })()}
                   </td>
-                  <td className="py-4 px-6 font-space font-medium text-ink">
+                  <td className="py-4 px-6 font-space font-medium text-theme">
                     {agent.branch}
                   </td>
                   <td className="py-4 px-6 text-right">
@@ -83,7 +101,7 @@ export default function AdminAgentsDashboard() {
                       {getPromotionOptions(agent.role).length > 0 && (
                         <button 
                           onClick={() => setSelectedAgent(agent)}
-                          className="px-4 py-1.5 bg-moss/10 text-moss font-space text-sm font-bold rounded-lg hover:bg-moss hover:text-white transition-colors tooltip flex items-center gap-2"
+                          className="px-4 py-1.5 bg-moss/10 text-theme font-space text-sm font-bold rounded-lg hover:bg-moss hover:text-white transition-colors tooltip flex items-center gap-2"
                           title="Promote User"
                         >
                           <ArrowUpCircle size={16} /> Promote
@@ -108,17 +126,17 @@ export default function AdminAgentsDashboard() {
       {/* Promotion Modal */}
       {selectedAgent && typeof window !== 'undefined' && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-ink/40 backdrop-blur-sm animate-fade-slide-up" style={{ animationDuration: '0.2s' }}>
-          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl relative border border-line">
+          <div className="card-theme rounded-3xl p-8 max-w-md w-full shadow-2xl relative border border-theme">
             <button 
               onClick={() => setSelectedAgent(null)} 
-              className="absolute top-6 right-6 text-muted hover:text-ink transition-colors"
+              className="absolute top-6 right-6 text-theme-muted hover:text-theme transition-colors"
             >
               <XCircle size={24} />
             </button>
             
-            <h2 className="text-2xl font-fraunces font-bold text-ink mb-2">Promote Personnel</h2>
-            <p className="font-space text-sm text-muted mb-6 pb-4 border-b border-line">
-              Select a new operational clearance level for <strong className="text-ink">{selectedAgent.name}</strong>.
+            <h2 className="text-2xl font-fraunces font-bold text-theme mb-2">Promote Personnel</h2>
+            <p className="font-space text-sm text-theme-muted mb-6 pb-4 border-b border-theme">
+              Select a new operational clearance level for <strong className="text-theme">{selectedAgent.name}</strong>.
             </p>
             
             <div className="space-y-3 mb-8">
@@ -140,21 +158,21 @@ export default function AdminAgentsDashboard() {
                     alert(`${selectedAgent.name} promoted to ${role.replace('_', ' ')}! This action has been logged in Promotion Audits.`);
                     setSelectedAgent(null);
                   }}
-                  className="w-full p-4 border border-line rounded-xl hover:border-moss hover:bg-moss/5 transition-all text-left flex justify-between items-center group"
+                  className="w-full p-4 border border-theme rounded-xl hover:border-moss hover:bg-moss/5 transition-all text-left flex justify-between items-center group"
                 >
                   <div>
-                    <p className="font-space font-bold text-ink text-lg">{role.replace('_', ' ')}</p>
-                    <p className="font-space text-xs text-muted mt-1">Grant full access privileges for this role.</p>
+                    <p className="font-space font-bold text-theme text-lg">{role.replace('_', ' ')}</p>
+                    <p className="font-space text-xs text-theme-muted mt-1">Grant full access privileges for this role.</p>
                   </div>
-                  <ArrowUpCircle size={20} className="text-moss opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <ArrowUpCircle size={20} className="text-theme opacity-0 group-hover:opacity-100 transition-opacity" />
                 </button>
               ))}
             </div>
 
-            <div className="pt-4 border-t border-line">
+            <div className="pt-4 border-t border-theme">
               <button 
                 onClick={() => setSelectedAgent(null)} 
-                className="w-full py-3 rounded-xl font-space font-bold text-muted hover:bg-sand transition-colors"
+                className="w-full py-3 rounded-xl font-space font-bold text-theme-muted hover:bg-theme-secondary transition-colors"
               >
                 Cancel
               </button>
@@ -167,18 +185,18 @@ export default function AdminAgentsDashboard() {
       {/* Ban Confirmation Modal */}
       {userToBan && typeof window !== 'undefined' && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-ink/40 backdrop-blur-sm animate-fade-slide-up" style={{ animationDuration: '0.2s' }}>
-          <div className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl relative border border-line text-center">
+          <div className="card-theme rounded-3xl p-8 max-w-sm w-full shadow-2xl relative border border-theme text-center">
             <div className="mx-auto w-16 h-16 bg-red/10 text-red rounded-full flex items-center justify-center mb-4">
               <ShieldAlert size={32} />
             </div>
-            <h2 className="text-xl font-fraunces font-bold text-ink mb-2">Ban User</h2>
-            <p className="font-space text-sm text-muted mb-8">
-              Are you sure you want to ban <strong className="text-ink">{userToBan.name}</strong>? This will immediately revoke their system access.
+            <h2 className="text-xl font-fraunces font-bold text-theme mb-2">Ban User</h2>
+            <p className="font-space text-sm text-theme-muted mb-8">
+              Are you sure you want to ban <strong className="text-theme">{userToBan.name}</strong>? This will immediately revoke their system access.
             </p>
             <div className="flex gap-3">
               <button 
                 onClick={() => setUserToBan(null)}
-                className="flex-1 py-3 rounded-xl font-space font-bold text-muted hover:bg-sand transition-colors border border-line"
+                className="flex-1 py-3 rounded-xl font-space font-bold text-theme-muted hover:bg-theme-secondary transition-colors border border-theme"
               >
                 Cancel
               </button>

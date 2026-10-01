@@ -15,17 +15,19 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node SRC/server.js",
-    "dev": "nodemon SRC/server.js",
-    "db:push": "prisma db push --accept-data-loss",
-    "db:seed": "node prisma/seed.js"
-  },
+  "test": "jest",
+  "start": "node SRC/server.js",
+  "dev": "nodemon SRC/server.js",
+  "db:push": "prisma db push --accept-data-loss",
+  "db:seed": "node prisma/seed.js"
+},
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "jest": "^30.5.2",
+    "nodemon": "^3.1.14",
+    "supertest": "^7.3.0"
   }
 }

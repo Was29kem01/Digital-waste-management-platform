@@ -1,6 +1,8 @@
 import './globals.css';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import type { Metadata } from 'next';
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 
 export const metadata: Metadata = {
   title: 'EcoLink - Waste Management System',
@@ -24,9 +26,11 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;700&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet" />
       </head>
       <body>
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -22,9 +22,10 @@ export async function fetchApi(endpoint: string, options: RequestInit = {}) {
 
   // Handle 401 Unauthorized globally if needed (e.g., redirect to login)
   if (response.status === 401) {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    window.location.href = '/login';
+    // COMMENTED OUT FOR MOCKING:
+    // localStorage.removeItem('token');
+    // localStorage.removeItem('user');
+    // window.location.href = '/login';
   }
 
   const data = await response.json();

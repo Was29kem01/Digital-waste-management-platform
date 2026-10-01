@@ -34,16 +34,45 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-fraunces);
 }
 
+/* MICRO-THEMING CLASSES FOR DASHBOARD WIDGETS */
+.card-theme {
+  background-color: #FFFFFF;
+  border-color: #E4DDCE;
+}
+.text-theme {
+  color: #21261F;
+}
+.text-theme-muted {
+  color: #7A8272;
+}
+.bg-theme-secondary {
+  background-color: #F9F7F2;
+}
+.border-theme {
+  border-color: #E4DDCE;
+}
+
+.dark .card-theme {
+  background-color: #1A1A1A !important;
+  border-color: #2C2C2C !important;
+}
+.dark .text-theme {
+  color: #FFFFFF !important;
+}
+.dark .text-theme-muted {
+  color: #9CA3AF !important;
+}
+.dark .bg-theme-secondary {
+  background-color: #242424 !important;
+}
+.dark .border-theme {
+  border-color: #2C2C2C !important;
+}
+
 /* Micro-Animations & Professional UI Utilities */
 @keyframes fade-slide-up {
-  0% {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  0% { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
 .animate-fade-slide-up {
@@ -94,7 +123,6 @@ h1, h2, h3, h4, h5, h6 {
   animation: map-pin-drop 0.8s ease-out 1;
 }
 
-/* Professional Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;

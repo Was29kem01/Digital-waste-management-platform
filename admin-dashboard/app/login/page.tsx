@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { Role } from '../../lib/types';
 import { Eye, EyeOff, ShieldCheck, ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
 
 export default function LoginPage() {
@@ -18,6 +19,21 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
+      // Mock Login Bypass for Testing UI
+      if (email === 'superadmin@gmail.com') {
+        login('fake-token', { id: 1, email, name: 'System Super Admin', role: Role.SUPER_ADMIN, branchId: null });
+        return;
+      } else if (email === 'admin@gmail.com') {
+        login('fake-token', { id: 2, email, name: 'Regional Admin', role: Role.ADMIN, branchId: null });
+        return;
+      } else if (email === 'stationadmin@gmail.com') {
+        login('fake-token', { id: 3, email, name: 'Yaounde Station Admin', role: Role.STATION_ADMIN, branchId: 1, branchName: 'Yaounde Central' });
+        return;
+      } else if (email === 'stationmanager@gmail.com') {
+        login('fake-token', { id: 4, email, name: 'Yaounde Station Manager', role: Role.STATION_MANAGER, branchId: 1, branchName: 'Yaounde Central' });
+        return;
+      }
+      
       const response = await fetch('http://localhost:5000/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -47,12 +63,9 @@ export default function LoginPage() {
         {/* Header Logo - ENLARGED */}
         <div>
           <div className="flex items-center gap-3">
-            <span className="text-4xl sm:text-5xl font-extrabold tracking-tight font-fraunces">
-              <span className="text-[#2F4B3C]">Eco</span>
-              <span className="text-[#C4693C]">Link</span>
-            </span>
+            <img src="/logo.png" alt="EcoLink" className="h-20 w-auto object-contain drop-shadow-sm" />
           </div>
-          <p className="text-[#C4693C] font-space text-sm font-bold tracking-wide mt-1">
+          <p className="text-[#C4693C] font-space text-sm font-bold tracking-wide mt-2">
             "Report waste, see it through"
           </p>
         </div>
@@ -156,7 +169,7 @@ export default function LoginPage() {
           </blockquote>
 
           <p className="text-[#E4DDCE] text-base font-space leading-relaxed drop-shadow-sm max-w-md mx-auto">
-            Connecting citizens, station administrators, and field collection agents across Douala and Yaoundé in one seamless platform.
+            Connecting citizens, station administrators, and field collection agents all over Cameroon in one seamless platform.
           </p>
         </div>
 
